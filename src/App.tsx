@@ -12,7 +12,7 @@ import { CheckSquare, Calendar, Sparkles, User, Facebook, Instagram, Youtube, Sh
 export default function App() {
   const { user, login, register, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('events');
-  const { stats, openPool, addCustomPool, earnSilverKeys, earnGoldenKeys, purchaseItem, sellItem } = useGameState();
+  const { stats, openPool, addCustomPool, earnSilverKeys, earnGoldenKeys, purchaseItem, sellItem } = useGameState(user.username);
 
   if (!user) {
     return <AuthPage onLogin={login} onRegister={register} />;

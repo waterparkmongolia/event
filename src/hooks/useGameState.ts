@@ -2,9 +2,11 @@ import { useState, useCallback, useEffect } from 'react';
 import { UserStats, Prize, PrizePool, SUPER_PRIZES, STARTER_PRIZES } from '../types';
 import confetti from 'canvas-confetti';
 
-export function useGameState() {
+export function useGameState(username: string) {
+  const storageKey = `prize_box_stats_${username}`;
+
   const [stats, setStats] = useState<UserStats>(() => {
-    const saved = localStorage.getItem('prize_box_stats');
+    const saved = localStorage.getItem(storageKey);
     if (saved) {
       const parsed = JSON.parse(saved);
       // Clean up jaks_event if it exists in customPools and ensure no duplicates with default IDs
@@ -49,8 +51,8 @@ export function useGameState() {
   });
 
   useEffect(() => {
-    localStorage.setItem('prize_box_stats', JSON.stringify(stats));
-  }, [stats]);
+    localStorage.setItem(storageKey, JSON.stringify(stats));
+  }, [stats, storageKey]);
 
   const earnSilverKeys = useCallback((count: number) => {
     setStats(prev => ({ ...prev, silverKeys: prev.silverKeys + count }));
