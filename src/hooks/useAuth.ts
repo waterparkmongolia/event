@@ -1,62 +1,85 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 
 export interface User {
+  id: string;
   username: string;
   phone: string;
 }
 
-interface StoredUser {
-  username: string;
-  phone: string;
-  password: string;
-}
-
-function getUsers(): StoredUser[] {
-  const saved = localStorage.getItem('pb_users');
-  return saved ? JSON.parse(saved) : [];
-}
-
-function saveUsers(users: StoredUser[]) {
-  localStorage.setItem('pb_users', JSON.stringify(users));
-}
-
-function getCurrentUser(): User | null {
-  const saved = localStorage.getItem('pb_current_user');
-  return saved ? JSON.parse(saved) : null;
+async function fetchProfile(userId: string): Promise<User | null> {
+  const { data } = await supabase
+    .from('profiles')
+    .select('username, phone')
+    .eq('id', userId)
+    .single();
+  if (!data) return null;
+  return { id: userId, username: data.username, phone: data.phone };
 }
 
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(getCurrentUser);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const register = useCallback((username: string, phone: string, password: string): string | null => {
-    const users = getUsers();
-    if (users.find(u => u.username === username)) {
-      return 'Энэ хэрэглэгчийн нэр аль хэдийн бүртгэлтэй байна.';
-    }
-    const newUser: StoredUser = { username, phone, password };
-    saveUsers([...users, newUser]);
-    const currentUser: User = { username, phone };
-    localStorage.setItem('pb_current_user', JSON.stringify(currentUser));
-    setUser(currentUser);
+  useEffect(() => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session?.user) {
+        const profile = await fetchProfile(session.user.id);
+        setUser(profile);
+      }
+      setLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user) {
+        const profile = await fetchProfile(session.user.id);
+        setUser(profile);
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const register = useCallback(async (
+    username: string, phone: string, password: string
+  ): Promise<string | null> => {
+    const { data: existing } = await supabase
+      .from('profiles')
+      .select('username')
+      .eq('username', username)
+      .single();
+
+    if (existing) return 'Энэ хэрэглэгчийн нэр аль хэдийн бүртгэлтэй байна.';
+
+    const email = `${username}@eventhub.app`;
+    const { data, error } = await supabase.auth.signUp({ email, password });
+
+    if (error) return error.message;
+    if (!data.user) return 'Бүртгэл үүсгэхэд алдаа гарлаа.';
+
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .insert({ id: data.user.id, username, phone });
+
+    if (profileError) return profileError.message;
     return null;
   }, []);
 
-  const login = useCallback((username: string, password: string): string | null => {
-    const users = getUsers();
-    const found = users.find(u => u.username === username && u.password === password);
-    if (!found) {
-      return 'Хэрэглэгчийн нэр эсвэл нууц үг буруу байна.';
-    }
-    const currentUser: User = { username: found.username, phone: found.phone };
-    localStorage.setItem('pb_current_user', JSON.stringify(currentUser));
-    setUser(currentUser);
+  const login = useCallback(async (
+    username: string, password: string
+  ): Promise<string | null> => {
+    const email = `${username}@eventhub.app`;
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return 'Хэрэглэгчийн нэр эсвэл нууц үг буруу байна.';
     return null;
   }, []);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem('pb_current_user');
+  const logout = useCallback(async () => {
+    await supabase.auth.signOut();
     setUser(null);
   }, []);
 
-  return { user, register, login, logout };
+  return { user, loading, register, login, logout };
 }
