@@ -1,15 +1,22 @@
 import { useState } from 'react';
 import { Shell } from './components/layout/Shell';
+import { AuthPage } from './components/auth/AuthPage';
 import { EventsView } from './components/views/EventsView';
 import { ItemsView } from './components/views/ItemsView';
 import { MarketView } from './components/views/MarketView';
 import { AdminView } from './components/views/AdminView';
 import { useGameState } from './hooks/useGameState';
+import { useAuth } from './hooks/useAuth';
 import { CheckSquare, Calendar, Sparkles, User, Facebook, Instagram, Youtube, Share2, ShoppingBag } from 'lucide-react';
 
 export default function App() {
+  const { user, login, register, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('events');
   const { stats, openPool, addCustomPool, earnSilverKeys, earnGoldenKeys, purchaseItem, sellItem } = useGameState();
+
+  if (!user) {
+    return <AuthPage onLogin={login} onRegister={register} />;
+  }
 
   const tasks = [
     { id: 'fb', title: 'Facebook дагах', reward: '1 Мөнгөн Түлхүүр', icon: <Facebook size={18} />, type: 'key', keyType: 'silver' },
@@ -34,10 +41,10 @@ export default function App() {
   };
 
   return (
-    <Shell 
-      activeTab={activeTab} 
-      onTabChange={setActiveTab} 
-      userPoints={stats.points} 
+    <Shell
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+      userPoints={stats.points}
       userBalance={stats.balance}
       userDollarBalance={stats.dollarBalance}
       totalEarnings={stats.totalEarnings}
@@ -46,6 +53,8 @@ export default function App() {
       silverKeys={stats.silverKeys}
       tickets={stats.tickets}
       tickets2027={stats.tickets2027}
+      username={user.username}
+      onLogout={logout}
     >
       {activeTab === 'events' && (
         <EventsView 

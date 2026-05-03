@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu, Package, Calendar, CheckSquare, Key as KeyIcon, Ticket, ShoppingBag } from 'lucide-react';
+import { Menu, Package, Calendar, CheckSquare, Key as KeyIcon, Ticket, ShoppingBag, LogOut } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { motion } from 'motion/react';
 
@@ -16,21 +16,25 @@ interface ShellProps {
   silverKeys: number;
   tickets: number;
   tickets2027: number;
+  username?: string;
+  onLogout?: () => void;
 }
 
-export function Shell({ 
-  children, 
-  activeTab, 
-  onTabChange, 
-  userPoints, 
-  userBalance, 
-  userDollarBalance, 
-  totalEarnings, 
-  totalDollarEarnings, 
-  userKeys, 
-  silverKeys, 
+export function Shell({
+  children,
+  activeTab,
+  onTabChange,
+  userPoints,
+  userBalance,
+  userDollarBalance,
+  totalEarnings,
+  totalDollarEarnings,
+  userKeys,
+  silverKeys,
   tickets,
-  tickets2027
+  tickets2027,
+  username,
+  onLogout
 }: ShellProps) {
   return (
     <div className="flex flex-col h-screen bg-brand-bg text-slate-200 overflow-hidden font-sans">
@@ -69,7 +73,26 @@ export function Shell({
               <p className="text-xs sm:text-sm font-black text-amber-500 leading-tight whitespace-nowrap">{userPoints.toLocaleString()}</p>
             </div>
           </div>
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-tr from-amber-500 to-yellow-200 border border-white/10 shrink-0"></div>
+          <div className="flex items-center gap-2 shrink-0">
+            {username && (
+              <span className="hidden sm:block text-xs font-bold text-slate-400 uppercase tracking-widest">{username}</span>
+            )}
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-tr from-amber-500 to-yellow-200 border border-white/10 flex items-center justify-center shrink-0">
+              {username && (
+                <span className="text-black font-black text-xs uppercase">{username[0]}</span>
+              )}
+            </div>
+            {onLogout && (
+              <button
+                type="button"
+                onClick={onLogout}
+                title="Гарах"
+                className="p-1.5 sm:p-2 hover:bg-white/5 rounded-lg transition-colors text-slate-500 hover:text-red-400"
+              >
+                <LogOut size={16} className="sm:w-[18px] sm:h-[18px]" />
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
