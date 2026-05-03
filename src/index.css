@@ -1,0 +1,47 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Outfit", sans-serif;
+  
+  --color-brand-bg: #0A0A0B;
+  --color-brand-nav: #111113;
+  --color-brand-card-reg: #161618;
+  --color-brand-card-super: #1C1A16;
+  --color-brand-accent: #f59e0b;
+}
+
+@layer base {
+  body {
+    @apply bg-brand-bg text-slate-200 font-sans selection:bg-amber-500/30;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar for IE, Edge and Firefox */
+  * {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+}
+
+.prize-glow-gold {
+  box-shadow: 0 0 40px -10px rgba(245, 158, 11, 0.4);
+}
+
+.prize-glow-purple {
+  box-shadow: 0 0 40px -10px rgba(168, 85, 247, 0.4);
+}
+
+.card-shadow {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.accent-shadow {
+  box-shadow: 0 0 40px rgba(245, 158, 11, 0.1);
+}
