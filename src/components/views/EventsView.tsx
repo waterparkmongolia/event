@@ -3,6 +3,7 @@ import { Ticket, Key as KeyIcon } from 'lucide-react';
 import { PrizePoolCard } from '../prizepool/PrizePoolCard';
 import { PoolModal } from '../prizepool/PoolModal';
 import { Prize, PrizePool, DEFAULT_STARTER_POOL, DEFAULT_SUPER_POOL, DEFAULT_SUPER_POOL_2027 } from '../../types';
+import { toast } from '../../lib/toast';
 
 interface EventsViewProps {
   stats: { 
@@ -69,7 +70,7 @@ export function EventsView({ stats, onOpen }: EventsViewProps) {
                 isLocked={isLocked}
                 onClick={() => {
                   if (pool.id === 'super_2027' && isYearLocked) {
-                    alert('Энэ Prize Pool зөвхөн 2027 онд нээгдэнэ!');
+                    toast('Энэ Prize Pool зөвхөн 2027 онд нээгдэнэ!', 'info');
                     return;
                   }
                   setActivePool(pool);

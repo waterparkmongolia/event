@@ -14,14 +14,14 @@ export const PrizePoolCard: React.FC<PrizePoolCardProps> = ({ pool, onClick, isL
   const prizes = pool.prizes;
 
   const costText = pool.cost.tickets2027
-    ? `${pool.cost.tickets2027} Ticket 2027`
+    ? `${pool.cost.tickets2027} Super Ticket 2027`
     : pool.cost.tickets
       ? `${pool.cost.tickets} Тасалбар`
-      : pool.cost.goldenKeys 
-        ? `${pool.cost.goldenKeys} Gold + ${pool.cost.silverKeys} Silver`
+      : pool.cost.goldenKeys
+        ? `${pool.cost.goldenKeys} Алтан Түлхүүр`
         : pool.cost.silverKeys
-          ? `${pool.cost.silverKeys} Silver`
-          : `${pool.cost.points} Points`;
+          ? `${pool.cost.silverKeys} Мөнгөн Түлхүүр`
+          : `${pool.cost.points} Оноо`;
 
   return (
     <section
@@ -40,7 +40,7 @@ export const PrizePoolCard: React.FC<PrizePoolCardProps> = ({ pool, onClick, isL
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
           </div>
           <span className="text-white font-black italic uppercase tracking-widest text-xs">Locked</span>
-          <p className="text-[10px] text-amber-400 font-bold mt-1 px-4 text-center">Get a Ticket to unlock</p>
+          <p className="text-[10px] text-amber-400 font-bold mt-1 px-4 text-center">Тасалбар шаардлагатай</p>
         </div>
       )}
 
