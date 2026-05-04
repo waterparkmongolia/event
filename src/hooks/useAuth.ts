@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 
 export interface User {
@@ -7,37 +8,66 @@ export interface User {
   phone: string;
 }
 
-// Read session synchronously from localStorage — zero network, zero delay
+// Try to build User from session metadata (instant, no network)
+function userFromMeta(session: Session): User | null {
+  const meta = session.user.user_metadata;
+  if (!meta?.username) return null;
+  return { id: session.user.id, username: meta.username, phone: meta.phone ?? '' };
+}
+
+// Fallback: fetch profile from DB (for accounts created before metadata was added)
+async function fetchProfile(userId: string): Promise<User | null> {
+  const { data } = await supabase
+    .from('profiles')
+    .select('username, phone')
+    .eq('id', userId)
+    .single();
+  if (!data) return null;
+  return { id: userId, username: data.username, phone: data.phone };
+}
+
+async function resolveUser(session: Session): Promise<User | null> {
+  return userFromMeta(session) ?? await fetchProfile(session.user.id);
+}
+
+// Read stored session from localStorage synchronously (no network)
 function readStoredUser(): User | null {
   try {
-    const raw = localStorage.getItem(`sb-nqrqpenmoicijgatmpei-auth-token`);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    const u = parsed?.user ?? parsed?.session?.user;
-    const meta = u?.user_metadata;
-    if (!meta?.username) return null;
-    return { id: u.id, username: meta.username, phone: meta.phone ?? '' };
+    // Supabase v2 stores session under this key
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i) ?? '';
+      if (!key.startsWith('sb-') || !key.endsWith('-auth-token')) continue;
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
+      const parsed = JSON.parse(raw);
+      const u = parsed?.user ?? parsed?.session?.user;
+      const meta = u?.user_metadata;
+      if (meta?.username) {
+        return { id: u.id, username: meta.username, phone: meta.phone ?? '' };
+      }
+    }
+    return null;
   } catch {
     return null;
   }
 }
 
 export function useAuth() {
-  // Initialize immediately from localStorage — no async, no loading screen
   const [user, setUser] = useState<User | null>(readStoredUser);
-  const [loading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // onAuthStateChange keeps state in sync after login/logout/token events
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_OUT') {
         setUser(null);
         return;
       }
-      if (session?.user?.user_metadata?.username) {
-        const meta = session.user.user_metadata;
-        setUser({ id: session.user.id, username: meta.username, phone: meta.phone ?? '' });
-      }
+      if (!session) return;
+
+      setLoading(true);
+      const resolved = await resolveUser(session).catch(() => null);
+      setUser(resolved);
+      setLoading(false);
     });
     return () => subscription.unsubscribe();
   }, []);
@@ -82,7 +112,6 @@ export function useAuth() {
 
   const logout = useCallback(async () => {
     await supabase.auth.signOut();
-    setUser(null);
   }, []);
 
   return { user, loading, register, login, logout };
