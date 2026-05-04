@@ -7,6 +7,12 @@ export interface User {
   phone: string;
 }
 
+function userFromSession(session: { user: { id: string; user_metadata?: Record<string, string> } }): User | null {
+  const meta = session.user.user_metadata;
+  if (!meta?.username) return null;
+  return { id: session.user.id, username: meta.username, phone: meta.phone ?? '' };
+}
+
 async function fetchProfile(userId: string): Promise<User | null> {
   const { data } = await supabase
     .from('profiles')
@@ -22,20 +28,11 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // getSession() reads from localStorage — fast, no network needed
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      try {
-        if (session?.user) {
-          const profile = await fetchProfile(session.user.id);
-          setUser(profile);
-        } else {
-          setUser(null);
-        }
-      } catch {
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
+    // getSession() reads from localStorage — instant, no network call
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      // Read user info from session metadata (no extra network request)
+      setUser(session ? userFromSession(session) : null);
+      setLoading(false);
     }).catch(() => {
       setUser(null);
       setLoading(false);
@@ -43,15 +40,21 @@ export function useAuth() {
 
     // onAuthStateChange handles login/logout/token refresh after initial load
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'INITIAL_SESSION') return; // already handled by getSession above
-      try {
-        if (session?.user) {
-          const profile = await fetchProfile(session.user.id);
-          setUser(profile);
+      if (event === 'INITIAL_SESSION') return;
+      if (session) {
+        // Try metadata first (instant), fall back to DB fetch
+        const fromMeta = userFromSession(session);
+        if (fromMeta) {
+          setUser(fromMeta);
         } else {
-          setUser(null);
+          try {
+            const profile = await fetchProfile(session.user.id);
+            setUser(profile);
+          } catch {
+            setUser(null);
+          }
         }
-      } catch {
+      } else {
         setUser(null);
       }
     });
@@ -71,7 +74,11 @@ export function useAuth() {
     if (existing) return 'Энэ хэрэглэгчийн нэр аль хэдийн бүртгэлтэй байна.';
 
     const email = `${username}@eventhub.app`;
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { username, phone } },
+    });
 
     if (error) return error.message;
     if (!data.user) return 'Бүртгэл үүсгэхэд алдаа гарлаа.';
