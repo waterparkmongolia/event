@@ -7,58 +7,38 @@ export interface User {
   phone: string;
 }
 
-function userFromSession(session: { user: { id: string; user_metadata?: Record<string, string> } }): User | null {
-  const meta = session.user.user_metadata;
-  if (!meta?.username) return null;
-  return { id: session.user.id, username: meta.username, phone: meta.phone ?? '' };
-}
-
-async function fetchProfile(userId: string): Promise<User | null> {
-  const { data } = await supabase
-    .from('profiles')
-    .select('username, phone')
-    .eq('id', userId)
-    .single();
-  if (!data) return null;
-  return { id: userId, username: data.username, phone: data.phone };
+// Read session synchronously from localStorage — zero network, zero delay
+function readStoredUser(): User | null {
+  try {
+    const raw = localStorage.getItem(`sb-nqrqpenmoicijgatmpei-auth-token`);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    const u = parsed?.user ?? parsed?.session?.user;
+    const meta = u?.user_metadata;
+    if (!meta?.username) return null;
+    return { id: u.id, username: meta.username, phone: meta.phone ?? '' };
+  } catch {
+    return null;
+  }
 }
 
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Initialize immediately from localStorage — no async, no loading screen
+  const [user, setUser] = useState<User | null>(readStoredUser);
+  const [loading] = useState(false);
 
   useEffect(() => {
-    // getSession() reads from localStorage — instant, no network call
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      // Read user info from session metadata (no extra network request)
-      setUser(session ? userFromSession(session) : null);
-      setLoading(false);
-    }).catch(() => {
-      setUser(null);
-      setLoading(false);
-    });
-
-    // onAuthStateChange handles login/logout/token refresh after initial load
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'INITIAL_SESSION') return;
-      if (session) {
-        // Try metadata first (instant), fall back to DB fetch
-        const fromMeta = userFromSession(session);
-        if (fromMeta) {
-          setUser(fromMeta);
-        } else {
-          try {
-            const profile = await fetchProfile(session.user.id);
-            setUser(profile);
-          } catch {
-            setUser(null);
-          }
-        }
-      } else {
+    // onAuthStateChange keeps state in sync after login/logout/token events
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
         setUser(null);
+        return;
+      }
+      if (session?.user?.user_metadata?.username) {
+        const meta = session.user.user_metadata;
+        setUser({ id: session.user.id, username: meta.username, phone: meta.phone ?? '' });
       }
     });
-
     return () => subscription.unsubscribe();
   }, []);
 
