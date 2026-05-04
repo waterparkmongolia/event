@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 
 export interface User {
@@ -8,32 +7,9 @@ export interface User {
   phone: string;
 }
 
-// Try to build User from session metadata (instant, no network)
-function userFromMeta(session: Session): User | null {
-  const meta = session.user.user_metadata;
-  if (!meta?.username) return null;
-  return { id: session.user.id, username: meta.username, phone: meta.phone ?? '' };
-}
-
-// Fallback: fetch profile from DB (for accounts created before metadata was added)
-async function fetchProfile(userId: string): Promise<User | null> {
-  const { data } = await supabase
-    .from('profiles')
-    .select('username, phone')
-    .eq('id', userId)
-    .single();
-  if (!data) return null;
-  return { id: userId, username: data.username, phone: data.phone };
-}
-
-async function resolveUser(session: Session): Promise<User | null> {
-  return userFromMeta(session) ?? await fetchProfile(session.user.id);
-}
-
-// Read stored session from localStorage synchronously (no network)
+// Read stored session from localStorage — synchronous, no network
 function readStoredUser(): User | null {
   try {
-    // Supabase v2 stores session under this key
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i) ?? '';
       if (!key.startsWith('sb-') || !key.endsWith('-auth-token')) continue;
@@ -54,20 +30,12 @@ function readStoredUser(): User | null {
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(readStoredUser);
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
 
+  // Only listen for SIGNED_OUT to clear user state
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_OUT') {
-        setUser(null);
-        return;
-      }
-      if (!session) return;
-
-      setLoading(true);
-      const resolved = await resolveUser(session).catch(() => null);
-      setUser(resolved);
-      setLoading(false);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_OUT') setUser(null);
     });
     return () => subscription.unsubscribe();
   }, []);
@@ -98,6 +66,9 @@ export function useAuth() {
       .insert({ id: data.user.id, username, phone });
 
     if (profileError) return profileError.message;
+
+    // Set user immediately after successful registration
+    setUser({ id: data.user.id, username, phone });
     return null;
   }, []);
 
@@ -105,8 +76,25 @@ export function useAuth() {
     username: string, password: string
   ): Promise<string | null> => {
     const email = `${username}@eventhub.app`;
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
     if (error) return 'Хэрэглэгчийн нэр эсвэл нууц үг буруу байна.';
+    if (!data.user) return 'Нэвтрэхэд алдаа гарлаа.';
+
+    // Try metadata first, then fetch profile from DB
+    const meta = data.user.user_metadata;
+    if (meta?.username) {
+      setUser({ id: data.user.id, username: meta.username, phone: meta.phone ?? '' });
+    } else {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('username, phone')
+        .eq('id', data.user.id)
+        .single();
+      if (!profile) return 'Профайл олдсонгүй.';
+      setUser({ id: data.user.id, username: profile.username, phone: profile.phone });
+    }
+
     return null;
   }, []);
 
