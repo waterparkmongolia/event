@@ -262,7 +262,7 @@ export function PoolModal({ pool, isOpen, onClose, onOpen, userStats }: PoolModa
                   "p-2 rounded-full transition-all",
                   showOdds ? "bg-cyan-500 text-black" : "hover:bg-white/5 text-slate-400"
                 )}
-                title="Show Probabilities"
+                title="Магадлал харах"
               >
                 <Info size={20} />
               </button>
@@ -434,7 +434,7 @@ export function PoolModal({ pool, isOpen, onClose, onOpen, userStats }: PoolModa
                           className="mt-16 text-center"
                         >
                            <h3 className="text-2xl sm:text-5xl font-black italic uppercase text-white/50 animate-pulse tracking-[-0.05em]">
-                             Rolling rewards...
+                             Шагнал нээж байна...
                            </h3>
                            <div className="mt-4 flex justify-center gap-1">
                              {[0, 1, 2].map((i) => (
@@ -531,7 +531,7 @@ export function PoolModal({ pool, isOpen, onClose, onOpen, userStats }: PoolModa
                           <Sparkles size={16} className="sm:size-32 text-amber-500 drop-shadow-[0_0_10px_rgba(245,158,11,1)]" />
                         </motion.div>
                         <h2 className="text-3xl sm:text-7xl font-black text-white italic uppercase tracking-tighter drop-shadow-[0_0_20px_rgba(255,255,255,0.5)]">
-                          Congrats!
+                          Баяр хүргэе!
                         </h2>
                         <motion.div
                           animate={{ scale: [1, 1.2, 1], rotate: [0, -10, 10, 0] }}
@@ -541,7 +541,7 @@ export function PoolModal({ pool, isOpen, onClose, onOpen, userStats }: PoolModa
                         </motion.div>
                       </div>
                       <p className="text-cyan-400 font-bold uppercase tracking-[0.2em] sm:tracking-[0.4em] text-[8px] sm:text-sm italic">
-                        Items successfully claimed
+                        Амжилттай нээгдлээ
                       </p>
                       <div className="mt-2 sm:mt-4 h-0.5 w-32 sm:w-64 bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent" />
                     </motion.div>
@@ -565,24 +565,28 @@ export function PoolModal({ pool, isOpen, onClose, onOpen, userStats }: PoolModa
                       transition={{ delay: 1.5 }}
                       className="flex flex-col sm:flex-row gap-3 sm:gap-6 mt-10 sm:mt-24 w-full sm:w-auto px-6"
                     >
-                      <button 
+                      <button
+                        type="button"
                         onClick={() => setWonPrizes(null)}
                         className="w-full sm:w-auto px-12 sm:px-20 py-3 sm:py-5 bg-white text-black rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-[10px] sm:text-sm hover:bg-amber-400 hover:scale-105 active:scale-95 transition-all shadow-[0_10px_40px_rgba(255,255,255,0.1)]"
                       >
-                        Confirm
+                        Хаах
                       </button>
 
-                      <button 
-                        onClick={() => {
-                          const count = wonPrizes.length;
-                          setWonPrizes(null);
-                          handleOpen(count);
-                        }}
-                        className="w-full sm:w-auto px-12 sm:px-20 py-3 sm:py-5 bg-black/40 border border-white/10 hover:bg-white/5 rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-[10px] sm:text-sm transition-all flex items-center justify-center gap-2 group"
-                      >
-                        Draw Again
-                        <Sparkles size={14} className="text-amber-500 group-hover:animate-pulse" />
-                      </button>
+                      {canAfford(wonPrizes.length) && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const count = wonPrizes.length;
+                            setWonPrizes(null);
+                            handleOpen(count);
+                          }}
+                          className="w-full sm:w-auto px-12 sm:px-20 py-3 sm:py-5 bg-black/40 border border-white/10 hover:bg-white/5 rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-[10px] sm:text-sm transition-all flex items-center justify-center gap-2 group"
+                        >
+                          Дахин нээх
+                          <Sparkles size={14} className="text-amber-500 group-hover:animate-pulse" />
+                        </button>
+                      )}
                     </motion.div>
                   </motion.div>
                 </motion.div>
@@ -629,7 +633,7 @@ export function PoolModal({ pool, isOpen, onClose, onOpen, userStats }: PoolModa
                   </div>
                   
                   <p className="mt-4 text-[9px] font-bold text-slate-500 uppercase tracking-widest">
-                    Cost: {costText} per roll
+                    Үнэ: {costText}
                   </p>
                 </motion.div>
               )}
@@ -644,7 +648,7 @@ export function PoolModal({ pool, isOpen, onClose, onOpen, userStats }: PoolModa
                   exit={{ opacity: 0, height: 0 }}
                   className="w-full max-w-md bg-brand-nav rounded-2xl border border-white/5 p-4 sm:p-8 accent-shadow mb-8 overflow-hidden"
                 >
-                  <h4 className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 sm:mb-6">Odds & Probabilities</h4>
+                  <h4 className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 sm:mb-6">Магадлал</h4>
                   <div className="space-y-3 sm:space-y-4">
                     {prizes.slice(0, 10).map((prize) => (
                       <div key={prize.id} className="flex items-center justify-between group">

@@ -39,7 +39,7 @@ export const PrizePoolCard: React.FC<PrizePoolCardProps> = ({ pool, onClick, isL
           <div className="bg-amber-500 text-black p-3 rounded-full mb-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
           </div>
-          <span className="text-white font-black italic uppercase tracking-widest text-xs">Locked</span>
+          <span className="text-white font-black italic uppercase tracking-widest text-xs">Хаалттай</span>
           <p className="text-[10px] text-amber-400 font-bold mt-1 px-4 text-center">Тасалбар шаардлагатай</p>
         </div>
       )}
@@ -74,7 +74,7 @@ export const PrizePoolCard: React.FC<PrizePoolCardProps> = ({ pool, onClick, isL
             "px-2 py-0.5 sm:px-3 sm:py-1 rounded-md text-[9px] sm:text-xs font-black italic tracking-tight",
             isSuper ? "bg-amber-500 text-black" : "bg-slate-800 text-slate-300"
           )}>
-            {isSuper ? 'RARE' : 'NORMAL'}
+            {isSuper ? 'ХОВОР' : 'ЭНГИЙН'}
           </div>
         </div>
 
@@ -88,7 +88,7 @@ export const PrizePoolCard: React.FC<PrizePoolCardProps> = ({ pool, onClick, isL
           ? "bg-gradient-to-r from-amber-600 to-amber-400 text-black shadow-amber-500/20" 
           : "bg-white text-black hover:bg-slate-200"
       )}>
-        Open with {costText}
+        {costText}-р нээх
       </button>
       </div>
     </section>

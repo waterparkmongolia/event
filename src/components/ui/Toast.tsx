@@ -46,7 +46,7 @@ export function ToastContainer() {
   const dismiss = (id: number) => setToasts(prev => prev.filter(t => t.id !== id));
 
   return (
-    <div className="fixed top-16 inset-x-3 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-[420px] z-[100] flex flex-col gap-2 pointer-events-none">
+    <div className="fixed top-16 left-3 right-3 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:w-[420px] z-[100] flex flex-col gap-2 pointer-events-none">
       <AnimatePresence>
         {toasts.map(t => {
           const s = STYLES[t.type];
@@ -57,7 +57,7 @@ export function ToastContainer() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -8, scale: 0.95 }}
               transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-              className={`flex items-start gap-3 px-4 py-3 rounded-2xl border ${s.bg} ${s.border} shadow-xl pointer-events-auto`}
+              className={`w-full flex items-start gap-3 px-4 py-3 rounded-2xl border ${s.bg} ${s.border} shadow-xl pointer-events-auto`}
             >
               {s.icon}
               <p className="flex-1 text-sm font-semibold text-white leading-snug">{t.message}</p>

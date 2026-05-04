@@ -103,7 +103,7 @@ export function MarketView({ points, ticketsCount, soldTicketsCount, onPurchase,
             {item.limit && (
               <div className="w-full mb-6 sm:mb-8">
                 <div className="flex items-center justify-between text-[9px] sm:text-[10px] uppercase font-black tracking-widest text-white/40 mb-2">
-                  <span>Sold Out Progress</span>
+                  <span>Дууссан байдал</span>
                   <span className={cn(
                     item.soldCount! >= item.limit ? "text-red-500" : "text-cyan-400"
                   )}>
@@ -140,9 +140,9 @@ export function MarketView({ points, ticketsCount, soldTicketsCount, onPurchase,
                     : "bg-white/5 text-white/20 cursor-not-allowed border border-white/5"
                 )}
               >
-                {item.limit !== undefined && item.soldCount! >= item.limit 
-                  ? 'Sold Out' 
-                  : points >= item.cost ? 'Exchange' : 'Insufficient Points'}
+                {item.limit !== undefined && item.soldCount! >= item.limit
+                  ? 'Дууссан'
+                  : points >= item.cost ? 'Авах' : 'Оноо хүрэхгүй'}
               </button>
             </div>
           </motion.div>
@@ -205,12 +205,12 @@ export function MarketView({ points, ticketsCount, soldTicketsCount, onPurchase,
                 <ShoppingBag size={24} />
             </div>
             <div>
-                <h4 className="text-white font-bold uppercase italic">Special Offer</h4>
-                <p className="text-xs text-slate-500">Earn more points by completing daily tasks and challenges.</p>
+                <h4 className="text-white font-bold uppercase italic">Тусгай санал</h4>
+                <p className="text-xs text-slate-500">Өдөр тутмын даалгавраа биелүүлж илүү оноо цуглуул.</p>
             </div>
         </div>
         <button className="px-8 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-white transition-all">
-            View Tasks
+            Даалгавар харах
         </button>
       </div>
     </div>
