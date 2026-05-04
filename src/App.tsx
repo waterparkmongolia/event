@@ -8,6 +8,8 @@ import { AdminView } from './components/views/AdminView';
 import { useGameState } from './hooks/useGameState';
 import { useAuth } from './hooks/useAuth';
 import { Facebook, Instagram, Youtube, Share2, Calendar } from 'lucide-react';
+import { toast } from './lib/toast';
+import { ToastContainer } from './components/ui/Toast';
 
 export default function App() {
   const { user, loading, login, register, logout } = useAuth();
@@ -41,17 +43,19 @@ export default function App() {
     if (task.type === 'key') {
       if (task.keyType === 'golden') {
         earnGoldenKeys(1);
-        alert(`${task.title} амжилттай! 1 Алтан Түлхүүр нэмэгдлээ.`);
+        toast(`${task.title} амжилттай! 1 Алтан Түлхүүр нэмэгдлээ.`, 'success');
       } else {
         earnSilverKeys(1);
-        alert(`${task.title} амжилттай! 1 Мөнгөн Түлхүүр нэмэгдлээ.`);
+        toast(`${task.title} амжилттай! 1 Мөнгөн Түлхүүр нэмэгдлээ.`, 'success');
       }
     } else {
-      alert('Тун удахгүй...');
+      toast('Тун удахгүй...', 'info');
     }
   };
 
   return (
+    <>
+    <ToastContainer />
     <Shell
       activeTab={activeTab}
       onTabChange={setActiveTab}
@@ -111,5 +115,6 @@ export default function App() {
         </div>
       )}
     </Shell>
+    </>
   );
 }

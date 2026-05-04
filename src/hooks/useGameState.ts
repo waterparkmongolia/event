@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { UserStats, Prize, PrizePool } from '../types';
 import { supabase } from '../lib/supabase';
+import { toast } from '../lib/toast';
 import confetti from 'canvas-confetti';
 
 const DEFAULT_STATS: UserStats = {
@@ -113,14 +114,24 @@ export function useGameState(userId: string) {
     const totalTickets = (pool.cost.tickets      || 0) * count;
     const total2027    = (pool.cost.tickets2027  || 0) * count;
 
-    if (
-      stats.points      < totalPoints  ||
-      stats.goldenKeys  < totalGold    ||
-      stats.silverKeys  < totalSilver  ||
-      stats.tickets     < totalTickets ||
-      stats.tickets2027 < total2027
-    ) {
-      alert('Танд хангалттай нөөц байхгүй байна.');
+    if (stats.silverKeys < totalSilver) {
+      toast('Таны "Мөнгөн Түлхүүр" дууссан байна', 'error');
+      return null;
+    }
+    if (stats.goldenKeys < totalGold) {
+      toast('Таны "Алтан Түлхүүр" дууссан байна', 'error');
+      return null;
+    }
+    if (stats.tickets < totalTickets) {
+      toast('Таны "Тасалбар 2026" дууссан байна', 'error');
+      return null;
+    }
+    if (stats.tickets2027 < total2027) {
+      toast('Таны "Super Ticket 2027" дууссан байна', 'error');
+      return null;
+    }
+    if (stats.points < totalPoints) {
+      toast('Таны "Оноо" хүрэхгүй байна', 'error');
       return null;
     }
 
@@ -159,9 +170,9 @@ export function useGameState(userId: string) {
   }, [stats, rollPrize]);
 
   const purchaseItem = useCallback((costPoints: number, resultType: 'goldenKeys' | 'silverKeys' | 'tickets') => {
-    if (stats.points < costPoints) { alert('Хангалттай оноо байхгүй байна.'); return false; }
+    if (stats.points < costPoints) { toast('Таны "Оноо" хүрэхгүй байна', 'error'); return false; }
     if (resultType === 'tickets' && stats.soldTicketsCount >= 1000) {
-      alert('Тасалбарын хязгаар (1,000) дууссан байна.');
+      toast('Тасалбарын хязгаар (1,000 ширхэг) дууссан байна', 'error');
       return false;
     }
     setStats(prev => ({
@@ -182,7 +193,7 @@ export function useGameState(userId: string) {
       [rewardType]: prev[rewardType] + rewardAmount,
       totalEarnings: rewardType === 'balance' ? prev.totalEarnings + rewardAmount : prev.totalEarnings,
     }));
-    alert(`1 Тасалбар амжилттай зарагдлаа!`);
+    toast('1 Тасалбар амжилттай зарагдлаа!', 'success');
     return true;
   }, [stats]);
 
