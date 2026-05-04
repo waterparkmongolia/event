@@ -22,7 +22,8 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    // getSession() reads from localStorage — fast, no network needed
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       try {
         if (session?.user) {
           const profile = await fetchProfile(session.user.id);
@@ -34,6 +35,24 @@ export function useAuth() {
         setUser(null);
       } finally {
         setLoading(false);
+      }
+    }).catch(() => {
+      setUser(null);
+      setLoading(false);
+    });
+
+    // onAuthStateChange handles login/logout/token refresh after initial load
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'INITIAL_SESSION') return; // already handled by getSession above
+      try {
+        if (session?.user) {
+          const profile = await fetchProfile(session.user.id);
+          setUser(profile);
+        } else {
+          setUser(null);
+        }
+      } catch {
+        setUser(null);
       }
     });
 
